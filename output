@@ -1,0 +1,148 @@
+compats:
+C L 1 0
+C C -1 0
+L L -1 0
+S S 0 1
+L L 1 0
+L C -1 0
+S S 0 -1
+L C 0 1
+S S 1 0
+S C 1 0
+C S -1 0
+C S 0 1
+L L 0 1
+L L 0 -1
+C C 1 0
+S C 0 -1
+S S -1 0
+C L 0 -1
+weights : {
+    'S': 10,
+    'C': 3,
+    'L': 12,
+}
+initial co-eff matrix
+['S', 'C', 'L']
+['S', 'C', 'L']
+['S', 'C', 'L']
+['S', 'C', 'L']
+['S', 'C', 'L']
+['S', 'C', 'L']
+['S', 'C', 'L']
+['S', 'C', 'L']
+['S', 'C', 'L']
+initial entropies : 
+1.4041076
+1.4041076
+1.4041076
+1.4041076
+1.4041076
+1.4041076
+1.4041076
+1.4041076
+1.4041076
+creating model...
+iterating...
+starting state ... 
+ ['S', 'C', 'L'] ['S', 'C', 'L'] ['S', 'C', 'L'] 
+['S', 'C', 'L'] ['S', 'C', 'L'] ['S', 'C', 'L'] 
+['S', 'C', 'L'] ['S', 'C', 'L'] ['S', 'C', 'L'] 
+
+ent and noise 1.4038512 x 0 y 0
+ent and noise 1.4037144 x 1 y 0
+ent and noise 1.4037817 x 2 y 0
+ent and noise 1.4036338 x 0 y 1
+ent and noise 1.4034168 x 1 y 1
+ent and noise 1.4037781 x 2 y 1
+ent and noise 1.4036369 x 0 y 2
+ent and noise 1.4033674 x 1 y 2
+ent and noise 1.4035956 x 2 y 2
+min entropy x : 1 y: 2
+collapsing at 1 2
+chosen tile S
+iterating...
+starting state ... 
+ ['S', 'C', 'L'] ['S', 'C', 'L'] ['S', 'C', 'L'] 
+['S', 'C', 'L'] ['S', 'C', 'L'] ['S'] 
+['S', 'C', 'L'] ['S', 'C', 'L'] ['S', 'C', 'L'] 
+
+ent and noise 1.4038986 x 0 y 0
+ent and noise 1.4039832 x 1 y 0
+ent and noise 1.4035273 x 2 y 0
+ent and noise 1.404051 x 0 y 1
+ent and noise 1.403952 x 1 y 1
+ent and noise -0.0003402836 x 2 y 1
+ent and noise 1.4033971 x 0 y 2
+['S', 'C', 'L'] ['S', 'C', 'L'] ['S', 'C', 'L'] 
+['S', 'C', 'L'] ['S', 'C', 'L'] ['S'] 
+['S', 'C', 'L'] ['S', 'C', 'L'] ['S', 'C', 'L'] 
+
+2 1 1 ['S'] ? 
+ent and noise 1.4037755 x 2 y 2
+min entropy x : 2 y: 1
+collapsing at 2 1
+chosen tile S
+constraining x : 2 y: 2 C
+constraining x : 2 y: 2 L
+constraining x : 2 y: 0 L
+constraining x : 1 y: 1 C
+constraining x : 1 y: 1 L
+constraining x : 1 y: 0 L
+constraining x : 0 y: 1 C
+constraining x : 0 y: 1 L
+constraining x : 0 y: 2 C
+constraining x : 0 y: 2 L
+constraining x : 0 y: 0 L
+constraining x : 0 y: 0 C
+constraining x : 1 y: 0 C
+iterating...
+starting state ... 
+ ['S'] ['S'] ['S'] 
+['S'] ['S'] ['S'] 
+['S', 'C'] ['S'] ['S'] 
+
+['S'] ['S'] ['S'] 
+['S'] ['S'] ['S'] 
+['S', 'C'] ['S'] ['S'] 
+
+0 0 1 ['S'] ? 
+['S'] ['S'] ['S'] 
+['S'] ['S'] ['S'] 
+['S', 'C'] ['S'] ['S'] 
+
+0 1 1 ['S'] ? 
+ent and noise -0.00010995585 x 2 y 0
+['S'] ['S'] ['S'] 
+['S'] ['S'] ['S'] 
+['S', 'C'] ['S'] ['S'] 
+
+1 0 1 ['S'] ? 
+['S'] ['S'] ['S'] 
+['S'] ['S'] ['S'] 
+['S', 'C'] ['S'] ['S'] 
+
+1 1 1 ['S'] ? 
+['S'] ['S'] ['S'] 
+['S'] ['S'] ['S'] 
+['S', 'C'] ['S'] ['S'] 
+
+1 2 1 ['S'] ? 
+['S'] ['S'] ['S'] 
+['S'] ['S'] ['S'] 
+['S', 'C'] ['S'] ['S'] 
+
+2 0 1 ['S'] ? 
+['S'] ['S'] ['S'] 
+['S'] ['S'] ['S'] 
+['S', 'C'] ['S'] ['S'] 
+
+2 1 1 ['S'] ? 
+['S'] ['S'] ['S'] 
+['S'] ['S'] ['S'] 
+['S', 'C'] ['S'] ['S'] 
+
+2 2 1 ['S'] ? 
+min entropy x : 2 y: 0
+collapsing at 2 0
+chosen tile S
