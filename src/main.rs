@@ -17,16 +17,19 @@ impl CoOrd {
 
 struct Matrix(Vec<Vec<char>>);
 
-struct CoEffMatrix<'t, T> {
+//struct CoEffMatrix<'t, T> {
+struct CoEffMatrix<T> {
     width: usize,
     height: usize,
     coeff_matrix: Vec<T>,
-    weights: &'t HashMap<char, i32>,
+    weights: HashMap<char, i32>,
 }
 
-impl<'t> CoEffMatrix<'t, Vec<char>> {
+//impl<'t> CoEffMatrix<'t, Vec<char>> {
+impl CoEffMatrix<Vec<char>> {
     /*fill a new coeff matrix with all the possible tiles in every position */
-    fn new(size: (usize, usize), weights: &'t HashMap<char, i32>) -> Self {
+    //fn new(size: (usize, usize), weights: &'t HashMap<char, i32>) -> Self {
+    fn new(size: (usize, usize), weights: HashMap<char, i32>) -> Self {
         Self {
             width: size.0,
             height: size.1,
@@ -115,94 +118,109 @@ impl<'t> CoEffMatrix<'t, Vec<char>> {
     }
 }
 
-struct Model<'t> {
+
+
+
+
+
+//trying with refs ..
+/*struct Model<'t> {
     coeff: &'t mut CoEffMatrix<'t,Vec<char>>,
     compats: &'t HashSet<Compat>,
 }
 
-impl<'a> Model<'a> {
-    fn new(coeff_matrix: &'a mut CoEffMatrix<'a,Vec<char>>, compats: &'a HashSet<Compat>) -> Model<'a> {
+struct Model {
+    coeff: CoEffMatrix<Vec<char>>,
+    compats: HashSet<Compat>,
+}
+
+//impl<'a> Model<'a> {
+//impl Model {
+   // fn new(coeff_matrix: &'a mut CoEffMatrix<'a,Vec<char>>, compats: &'a HashSet<Compat>) -> Model<'a> {
+    fn new(coeff_matrix: CoEffMatrix<Vec<char>>, compats: HashSet<Compat>) -> Model {
         Model {
             coeff: coeff_matrix,
             compats: compats,
         }
     }
+   */
     //returns a vec of chars .. not a vec of vec of chars
-    fn run(&mut self) -> Vec<char> {
-        while !self.coeff.all_collapsed() {
-            self.iterate()
-        }
-        self.coeff.get_all_collapsed()
+    //fn run(coeff: CoEffMatrix<Vec<char>> ) -> Vec<char>{
+fn run(mut coeff: CoEffMatrix<Vec<char>> , compats: &HashSet<Compat>){
+    while !coeff.coeff_matrix.iter().all(|item| item.len() == 1) {
+        iterate(coeff,compats)
     }
 
-    fn iterate(&mut self) {
-        let coords: CoOrd = self.find_min_entropy_coords();
-        self.coeff.collapse(coords);
-        self.propagate(coords);
-    }
+    println!("{}", coeff);
+}
 
-    fn propagate(&mut self, coord: CoOrd) {
-        let mut stack: Vec<CoOrd> = vec![];
-        stack.push(coord);
-        let mut cur_possible_tiles: Vec<char>;
+fn iterate(coeff: CoEffMatrix<Vec<char>> , compat: &HashSet<Compat>){
+    let coords: CoOrd = find_min_entropy_coords(coeff);
+    coeff.collapse(coords);
+    propagate(coeff, compat, coords);
+}
 
-        while let Some(cur_coords) = stack.pop() {
-            for dir in valid_dirs(
-                &cur_coords,
-                (self.coeff.width as i32, self.coeff.height as i32),
-            )
-            .iter()
+fn propagate(coeff: &mut CoEffMatrix<Vec<char>> , compats: &HashSet<Compat> , coord: CoOrd) {
+    let mut stack: Vec<CoOrd> = vec![];
+    stack.push(coord);
+    let mut cur_possible_tiles: &Vec<char>; //trying to make this &Vec ..
+
+    while let Some(cur_coords) = stack.pop() {
+        for dir in valid_dirs(
+            &cur_coords,
+            (coeff.width as i32, coeff.height as i32),
+        )
+        .iter()
+        {
+            let other_co_ords: CoOrd = CoOrd {
+                x: cur_coords.x + dir.x,
+                y: cur_coords.y + dir.y,
+            };
+
+            cur_possible_tiles = coeff.get(cur_coords.y as usize, cur_coords.x as usize); // .. while getting
+                //= coeff.coeff_matrix[(cur_coords.x as usize  * coeff.width as usize + cur_coords.y as usize) as usize];
+                                                                            // rid of these
+                                                                            // clones ..
+
+            for other_tile in coeff
+                .get(other_co_ords.y as usize, other_co_ords.x as usize).clone()
             {
-                let other_co_ords: CoOrd = CoOrd {
-                    x: cur_coords.x + dir.x,
-                    y: cur_coords.y + dir.y,
-                };
-
-                cur_possible_tiles = self
-                    .coeff
-                    .get(cur_coords.y as usize, cur_coords.x as usize).clone();
-
-                for other_tile in self
-                    .coeff
-                    .get(other_co_ords.y as usize, other_co_ords.x as usize).clone()
-                {
-                    if !cur_possible_tiles.iter().any(|cur_tile| {
-                        self.compats.contains(&Compat {
-                            tile2: *cur_tile,
-                            tile1: other_tile,
-                            direction: *dir,
-                        })
-                    }) {
-                        self.coeff.constrain(other_co_ords, &other_tile);
-                        stack.push(other_co_ords);
-                    }
+                if !cur_possible_tiles.iter().any(|cur_tile| {
+                    compats.contains(&Compat {
+                        tile2: *cur_tile,
+                        tile1: other_tile,
+                        direction: *dir,
+                    })
+                }) {
+                    coeff.constrain(other_co_ords, &other_tile);
+                    stack.push(other_co_ords);
                 }
             }
         }
     }
+}
 
-    fn find_min_entropy_coords(&self) -> CoOrd {
-        let mut min_entropy = 0.0;
-        let mut coord: CoOrd = CoOrd { x: 0, y: 0 };
-        for y in 0..self.coeff.width {
-            for x in 0..self.coeff.height {
-                if self.coeff.get(y as usize, x as usize).len() == 1 {
-                    continue;
-                }
-                let entropy_plus_noise = self.coeff.entropy(CoOrd {
-                    x: y as i32,
-                    y: x as i32,
-                }) - (random::<f32>() / 1000 as f32);
-                //println!("ent and noise {} x {} y {}", entropy_plus_noise, x, y);
-                if min_entropy == 0.0 || entropy_plus_noise < min_entropy {
-                    min_entropy = entropy_plus_noise;
-                    coord.x = x as i32;
-                    coord.y = y as i32;
-                }
+fn find_min_entropy_coords(&CoEffMatrix coeff) -> CoOrd {
+    let mut min_entropy = 0.0;
+    let mut coord: CoOrd = CoOrd { x: 0, y: 0 };
+    for y in 0..coeff.width {
+        for x in 0..coeff.height {
+            if coeff.get(y as usize, x as usize).len() == 1 {
+                continue;
+            }
+            let entropy_plus_noise = coeff.entropy(CoOrd {
+                x: y as i32,
+                y: x as i32,
+            }) - (random::<f32>() / 1000 as f32);
+            //println!("ent and noise {} x {} y {}", entropy_plus_noise, x, y);
+            if min_entropy == 0.0 || entropy_plus_noise < min_entropy {
+                min_entropy = entropy_plus_noise;
+                coord.x = x as i32;
+                coord.y = y as i32;
             }
         }
-        coord
     }
+    coord
 }
 
 #[derive(Hash, Eq, PartialEq, Debug)]
@@ -228,7 +246,8 @@ impl fmt::Display for Compat {
     }
 }
 
-impl fmt::Display for CoEffMatrix<'_, Vec<char>> {
+//impl fmt::Display for CoEffMatrix<'_, Vec<char>> {
+impl fmt::Display for CoEffMatrix<Vec<char>> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         self.coeff_matrix.iter().enumerate().for_each(|item| {
             // if item size is 1, then we have a collapsed cell
@@ -304,6 +323,16 @@ fn parse_matrix(matrix: &Matrix) -> (HashSet<Compat>, HashMap<char, i32>) {
     (compats, weights)
 }
 
+fn constrain(coeff: &mut CoEffMatrix<Vec<char>>, coord: CoOrd, tile: &char) {
+    let tile_set = coeff.get_mut(coord.y as usize, coord.x as usize);
+    tile_set.remove(
+        tile_set
+            .iter()
+            .position(|possible_tile| possible_tile == tile)
+            .expect("not found"),
+    );
+}
+
 fn main() {
     let input_matrix = Matrix(vec![
         ['L', 'L', 'L', 'L'].to_vec(),
@@ -317,7 +346,8 @@ fn main() {
 
     let (compats, weights) = parse_matrix(&input_matrix);
 
-    let mut coeff: CoEffMatrix<Vec<char>> = CoEffMatrix::new((15, 15), &weights);
+    //let mut coeff: CoEffMatrix<Vec<char>> = CoEffMatrix::new((15, 15), &weights);
+    let mut coeff: CoEffMatrix<Vec<char>> = CoEffMatrix::new((15, 15), weights);
 
     //println!("initial co-eff matrix");
 
@@ -325,7 +355,6 @@ fn main() {
 
     //println!("initial entropies : ");
    // (0..3).for_each(|x| (0..3).for_each(|y| println!("{}", coeff.entropy(CoOrd { x: x, y: y }))));
-    let mut model = Model::new(&mut coeff, &compats);
-    model.run();
-    println!("{}", model.coeff);
+    //let mut model = Model::new(coeff, compats);
+     run(coeff, &compats);
 }
