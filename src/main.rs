@@ -147,20 +147,22 @@ struct Model {
     //returns a vec of chars .. not a vec of vec of chars
     //fn run(coeff: CoEffMatrix<Vec<char>> ) -> Vec<char>{
 fn run(mut coeff: CoEffMatrix<Vec<char>> , compats: &HashSet<Compat>){
-    while !coeff.coeff_matrix.iter().all(|item| item.len() == 1) {
-        iterate(coeff,compats)
+    while !&coeff.coeff_matrix.iter().all(|item| item.len() == 1) {
+        let coords: CoOrd = find_min_entropy_coords(coeff);
+        coeff.collapse(coords);
+        propagate(coeff, compats, coords);
     }
 
     println!("{}", coeff);
 }
-
+/*
 fn iterate(coeff: CoEffMatrix<Vec<char>> , compat: &HashSet<Compat>){
     let coords: CoOrd = find_min_entropy_coords(coeff);
     coeff.collapse(coords);
     propagate(coeff, compat, coords);
 }
-
-fn propagate(coeff: &mut CoEffMatrix<Vec<char>> , compats: &HashSet<Compat> , coord: CoOrd) {
+*/
+fn propagate(mut coeff: CoEffMatrix<Vec<char>> , compats: &HashSet<Compat> , coord: CoOrd) {
     let mut stack: Vec<CoOrd> = vec![];
     stack.push(coord);
     let mut cur_possible_tiles: &Vec<char>; //trying to make this &Vec ..
@@ -183,16 +185,16 @@ fn propagate(coeff: &mut CoEffMatrix<Vec<char>> , compats: &HashSet<Compat> , co
                                                                             // clones ..
 
             for other_tile in coeff
-                .get(other_co_ords.y as usize, other_co_ords.x as usize).clone()
+                .get(other_co_ords.y as usize, other_co_ords.x as usize)
             {
                 if !cur_possible_tiles.iter().any(|cur_tile| {
                     compats.contains(&Compat {
                         tile2: *cur_tile,
-                        tile1: other_tile,
+                        tile1: *other_tile,
                         direction: *dir,
                     })
                 }) {
-                    coeff.constrain(other_co_ords, &other_tile);
+                    constrain(&mut coeff, other_co_ords, &other_tile);
                     stack.push(other_co_ords);
                 }
             }
@@ -200,7 +202,7 @@ fn propagate(coeff: &mut CoEffMatrix<Vec<char>> , compats: &HashSet<Compat> , co
     }
 }
 
-fn find_min_entropy_coords(&CoEffMatrix coeff) -> CoOrd {
+fn find_min_entropy_coords(coeff: &CoEffMatrix<Vec<char>>) -> CoOrd {
     let mut min_entropy = 0.0;
     let mut coord: CoOrd = CoOrd { x: 0, y: 0 };
     for y in 0..coeff.width {
