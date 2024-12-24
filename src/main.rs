@@ -33,10 +33,10 @@ impl CoEffMatrix<Vec<char>> {
         Self {
             width: size.0,
             height: size.1,
-            coeff_matrix: vec![weights
-                .keys()
-                .map(|item| *item)
-                .collect(); (size.0 * size.1) as usize],
+            coeff_matrix: vec![
+                weights.keys().map(|item| *item).collect();
+                (size.0 * size.1) as usize
+            ],
             weights: weights,
         }
     }
@@ -118,11 +118,6 @@ impl CoEffMatrix<Vec<char>> {
     }
 }
 
-
-
-
-
-
 //trying with refs ..
 /*struct Model<'t> {
     coeff: &'t mut CoEffMatrix<'t,Vec<char>>,
@@ -144,13 +139,13 @@ struct Model {
         }
     }
    */
-    //returns a vec of chars .. not a vec of vec of chars
-    //fn run(coeff: CoEffMatrix<Vec<char>> ) -> Vec<char>{
-fn run(mut coeff: CoEffMatrix<Vec<char>> , compats: &HashSet<Compat>){
-    while !&coeff.coeff_matrix.iter().all(|item| item.len() == 1) {
-        let coords: CoOrd = find_min_entropy_coords(coeff);
+//returns a vec of chars .. not a vec of vec of chars
+//fn run(coeff: CoEffMatrix<Vec<char>> ) -> Vec<char>{
+fn run(mut coeff: CoEffMatrix<Vec<char>>, compats: &HashSet<Compat>) {
+    while !coeff.coeff_matrix.iter().all(|item| item.len() == 1) {
+        let coords: CoOrd = find_min_entropy_coords(&coeff);
         coeff.collapse(coords);
-        propagate(coeff, compats, coords);
+        propagate(&mut coeff, compats, coords);
     }
 
     println!("{}", coeff);
@@ -162,31 +157,26 @@ fn iterate(coeff: CoEffMatrix<Vec<char>> , compat: &HashSet<Compat>){
     propagate(coeff, compat, coords);
 }
 */
-fn propagate(mut coeff: CoEffMatrix<Vec<char>> , compats: &HashSet<Compat> , coord: CoOrd) {
+fn propagate(coeff: &mut CoEffMatrix<Vec<char>>, compats: &HashSet<Compat>, coord: CoOrd) {
     let mut stack: Vec<CoOrd> = vec![];
     stack.push(coord);
     let mut cur_possible_tiles: &Vec<char>; //trying to make this &Vec ..
 
     while let Some(cur_coords) = stack.pop() {
-        for dir in valid_dirs(
-            &cur_coords,
-            (coeff.width as i32, coeff.height as i32),
-        )
-        .iter()
-        {
+        for dir in valid_dirs(&cur_coords, (coeff.width as i32, coeff.height as i32)).iter() {
             let other_co_ords: CoOrd = CoOrd {
                 x: cur_coords.x + dir.x,
                 y: cur_coords.y + dir.y,
             };
 
-            cur_possible_tiles = coeff.get(cur_coords.y as usize, cur_coords.x as usize); // .. while getting
-                //= coeff.coeff_matrix[(cur_coords.x as usize  * coeff.width as usize + cur_coords.y as usize) as usize];
-                                                                            // rid of these
-                                                                            // clones ..
+            //cur_possible_tiles = //coeff.get(cur_coords.y as usize, cur_coords.x as usize); // .. while getting
+             cur_possible_tiles  = &coeff.coeff_matrix[(cur_coords.x as usize  * coeff.width as usize + cur_coords.y as usize) as usize];
+                                                                                          // rid of these
+                                                                                          // clones ..
 
-            for other_tile in coeff
-                .get(other_co_ords.y as usize, other_co_ords.x as usize)
-            {
+            for other_tile in coeff.get(other_co_ords.y as usize, other_co_ords.x as usize) {
+
+
                 if !cur_possible_tiles.iter().any(|cur_tile| {
                     compats.contains(&Compat {
                         tile2: *cur_tile,
@@ -194,7 +184,7 @@ fn propagate(mut coeff: CoEffMatrix<Vec<char>> , compats: &HashSet<Compat> , coo
                         direction: *dir,
                     })
                 }) {
-                    constrain(&mut coeff, other_co_ords, &other_tile);
+                    constrain(coeff, other_co_ords, &other_tile);
                     stack.push(other_co_ords);
                 }
             }
@@ -353,10 +343,10 @@ fn main() {
 
     //println!("initial co-eff matrix");
 
-   // println!("{}", coeff);
+    // println!("{}", coeff);
 
     //println!("initial entropies : ");
-   // (0..3).for_each(|x| (0..3).for_each(|y| println!("{}", coeff.entropy(CoOrd { x: x, y: y }))));
+    // (0..3).for_each(|x| (0..3).for_each(|y| println!("{}", coeff.entropy(CoOrd { x: x, y: y }))));
     //let mut model = Model::new(coeff, compats);
-     run(coeff, &compats);
+    run(coeff, &compats);
 }
