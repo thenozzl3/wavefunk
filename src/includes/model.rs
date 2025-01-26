@@ -13,9 +13,10 @@ pub struct Model<'t> {
 
 impl<'a> Model<'a> {
    pub fn new(coeff_matrix: &'a mut CoEffMatrix<'a,Vec<char>>, compats: &'a HashSet<Compat>) -> Model<'a> {
-        Model {
+       // or .. Model . Ppbly equivalent ..I think
+        Self {
             coeff: coeff_matrix,
-            compats: compats,
+            compats
         }
     }
     //returns a vec of chars .. not a vec of vec of chars
