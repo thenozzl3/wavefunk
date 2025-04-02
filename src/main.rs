@@ -1,14 +1,18 @@
 use crate::includes::coeff_matrix::CoEffMatrix;
 use crate::includes::coeff_matrix::Matrix;
-use crate::includes::model::Model;
-use crate::includes::coord::CoOrd;
 use crate::includes::compat::Compat;
+use crate::includes::coord::CoOrd;
+use crate::includes::model::Model;
+use rand::Error;
+use std::env;
+use std::fs::File;
+use std::io::prelude::*;
+use std::io::{self, BufRead};
 //use rand::{random, Rng};
 use std::collections::{HashMap, HashSet};
+use std::path::Path;
 
 pub mod includes;
-
-
 
 fn valid_dirs(cur_co_ords: &CoOrd, matrix_size: (i32, i32)) -> Vec<CoOrd> {
     let mut dirs: Vec<CoOrd> = Vec::new();
@@ -30,6 +34,25 @@ fn valid_dirs(cur_co_ords: &CoOrd, matrix_size: (i32, i32)) -> Vec<CoOrd> {
     }
 
     return dirs;
+}
+
+fn read_matrix<P>(filename: P) -> Result<Matrix, std::io::Error>
+where
+    P: AsRef<Path>,
+{
+    let mut input_matrix_vec = vec![];
+
+    let file = File::open(filename)?;
+
+    let lines = io::BufReader::new(file).lines();
+    for line in lines.map_while(Result::ok) {
+        input_matrix_vec.push(vec![]);
+
+        for elt in line.chars() {
+            input_matrix_vec.last_mut().unwrap().push(elt);
+        }
+    }
+    return Ok(Matrix(input_matrix_vec));
 }
 
 fn parse_matrix(matrix: &Matrix) -> (HashSet<Compat>, HashMap<char, i32>) {
@@ -63,28 +86,16 @@ fn parse_matrix(matrix: &Matrix) -> (HashSet<Compat>, HashMap<char, i32>) {
     (compats, weights)
 }
 
-fn main() {
-    let input_matrix = Matrix(vec![
-        ['L', 'L', 'L', 'L'].to_vec(),
-        ['L', 'L', 'L', 'L'].to_vec(),
-        ['L', 'L', 'L', 'L'].to_vec(),
-        ['L', 'C', 'C', 'L'].to_vec(),
-        ['C', 'S', 'S', 'C'].to_vec(),
-        ['S', 'S', 'S', 'S'].to_vec(),
-        ['S', 'S', 'S', 'S'].to_vec(),
-    ]);
+fn main() -> Result<(), std::io::Error> {
+    let args: Vec<String> = env::args().collect();
+    let filename = &args[1];
 
-    let (compats, weights) = parse_matrix(&input_matrix);
+    let (compats, weights) = parse_matrix(&read_matrix(filename)?);
 
     let mut coeff: CoEffMatrix<Vec<char>> = CoEffMatrix::new((15, 15), &weights);
 
-    //println!("initial co-eff matrix");
-
-   // println!("{}", coeff);
-
-    //println!("initial entropies : ");
-   // (0..3).for_each(|x| (0..3).for_each(|y| println!("{}", coeff.entropy(CoOrd { x: x, y: y }))));
     let mut model = Model::new(&mut coeff, &compats);
     model.run();
     println!("{}", model.coeff);
+    Ok(())
 }

@@ -6,22 +6,22 @@ use std::collections::{HashMap, HashSet};
 pub struct Matrix(pub Vec<Vec<char>>);
 
 pub struct CoEffMatrix<'t, T> {
-   pub width: usize,
-   pub  height: usize,
-   pub  coeff_matrix: Vec<T>,
-   pub  weights: &'t HashMap<char, i32>,
+    pub width: usize,
+    pub height: usize,
+    pub coeff_matrix: Vec<T>,
+    pub weights: &'t HashMap<char, i32>,
 }
 
 impl<'t> CoEffMatrix<'t, Vec<char>> {
     /*fill a new coeff matrix with all the possible tiles in every position */
-   pub fn new(size: (usize, usize), weights: &'t HashMap<char, i32>) -> Self {
+    pub fn new(size: (usize, usize), weights: &'t HashMap<char, i32>) -> Self {
         Self {
             width: size.0,
             height: size.1,
-            coeff_matrix: vec![weights
-                .keys()
-                .map(|item| *item)
-                .collect(); (size.0 * size.1) as usize],
+            coeff_matrix: vec![
+                weights.keys().map(|item| *item).collect();
+                (size.0 * size.1) as usize
+            ],
             weights: weights,
         }
     }
