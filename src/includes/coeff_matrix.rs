@@ -1,7 +1,7 @@
 use crate::includes::coord::CoOrd;
 use core::fmt;
 use rand::Rng;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 pub struct Matrix(pub Vec<Vec<char>>);
 
@@ -22,7 +22,7 @@ impl<'t> CoEffMatrix<'t, Vec<char>> {
                 weights.keys().map(|item| *item).collect();
                 (size.0 * size.1) as usize
             ],
-            weights: weights,
+            weights,
         }
     }
 

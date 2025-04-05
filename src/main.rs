@@ -3,12 +3,9 @@ use crate::includes::coeff_matrix::Matrix;
 use crate::includes::compat::Compat;
 use crate::includes::coord::CoOrd;
 use crate::includes::model::Model;
-use rand::Error;
 use std::env;
 use std::fs::File;
-use std::io::prelude::*;
 use std::io::{self, BufRead};
-//use rand::{random, Rng};
 use std::collections::{HashMap, HashSet};
 use std::path::Path;
 
@@ -49,7 +46,9 @@ where
         input_matrix_vec.push(vec![]);
 
         for elt in line.chars() {
-            input_matrix_vec.last_mut().unwrap().push(elt);
+            if let Some(vec) = input_matrix_vec.last_mut() {
+                vec.push(elt)
+            };
         }
     }
     return Ok(Matrix(input_matrix_vec));
