@@ -3,11 +3,13 @@ use crate::includes::coeff_matrix::Matrix;
 use crate::includes::compat::Compat;
 use crate::includes::coord::CoOrd;
 use crate::includes::model::Model;
+use crate::includes::errors::MatrixError;
+use std::collections::{HashMap, HashSet};
 use std::env;
 use std::fs::File;
 use std::io::{self, BufRead};
-use std::collections::{HashMap, HashSet};
 use std::path::Path;
+
 
 pub mod includes;
 
@@ -33,23 +35,33 @@ fn valid_dirs(cur_co_ords: &CoOrd, matrix_size: (i32, i32)) -> Vec<CoOrd> {
     return dirs;
 }
 
-fn read_matrix<P>(filename: P) -> Result<Matrix, std::io::Error>
+fn read_matrix<P>(filename: P) -> Result<Matrix, MatrixError>
 where
     P: AsRef<Path>,
 {
     let mut input_matrix_vec = vec![];
 
-    let file = File::open(filename)?;
+    let file = File::open(filename).map_err(MatrixError::Io)?;
+    let mut cols: usize;
 
-    let lines = io::BufReader::new(file).lines();
-    for line in lines.map_while(Result::ok) {
+    for line in io::BufReader::new(file)
+        .lines()
+        .map_while(Result::ok)
+        .enumerate()
+    {
         input_matrix_vec.push(vec![]);
-
-        for elt in line.chars() {
+        cols = line.1.len();
+        for elt in line.1.chars() {
             if let Some(vec) = input_matrix_vec.last_mut() {
                 vec.push(elt)
             };
         }
+        if line.0 == 0 {
+            continue;
+        };
+        if input_matrix_vec[line.0 - 1].len() != cols {
+            return Err(MatrixError::ParseError);
+        };
     }
     return Ok(Matrix(input_matrix_vec));
 }
@@ -85,14 +97,14 @@ fn parse_matrix(matrix: &Matrix) -> (HashSet<Compat>, HashMap<char, i32>) {
     (compats, weights)
 }
 
-fn main() -> Result<(), std::io::Error> {
+fn main() -> Result<(), MatrixError> {
     let args: Vec<String> = env::args().collect();
+    if args.len() == 1 {
+        return Err(MatrixError::ArgsError);
+    }
     let filename = &args[1];
-
     let (compats, weights) = parse_matrix(&read_matrix(filename)?);
-
     let mut coeff: CoEffMatrix<Vec<char>> = CoEffMatrix::new((15, 15), &weights);
-
     let mut model = Model::new(&mut coeff, &compats);
     model.run();
     println!("{}", model.coeff);
